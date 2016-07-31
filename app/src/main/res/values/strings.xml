@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Post_data</string>
+    <string-array name="semester">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="department">
+        <item>CSE</item>
+        <item>ISE</item>
+        <item>EC</item>
+        <item>EEE</item>
+        <item>MECHANICAL</item>
+    </string-array>
+
+
+    <string name="title_activity_main">MainActivity</string>
+</resources>
