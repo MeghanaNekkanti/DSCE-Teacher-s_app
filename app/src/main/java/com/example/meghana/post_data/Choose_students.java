@@ -289,7 +289,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
 
         Intent intent = new Intent(this, FilePickerActivity.class);
         startActivityForResult(intent, 2);
-        type = "file";
     }
 
     public void attachImage(View view) {
@@ -297,7 +296,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
-        type = "image";
     }
 
     @Override
@@ -314,6 +312,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                     selectedfilepath = getPath(this, selectedfile);
                     display(selectedfilepath);
                     Log.d(TAG, "onActivityResult: " + "abc" + selectedfilepath);
+                    type = "image";
 
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
@@ -324,6 +323,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                 selectedfilepath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
                 textView.setText(selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
                 Log.d(TAG, "onActivityResult: " + "file" + selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
+                type = "file";
 
             }
             super.onActivityResult(requestCode, resultCode, data);
