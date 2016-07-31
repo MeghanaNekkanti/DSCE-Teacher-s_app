@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -27,8 +28,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnPausedListener;
 import com.google.firebase.storage.OnProgressListener;
@@ -36,9 +40,23 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 public class Choose_students extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
@@ -57,6 +75,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
     TextView textView;
     FirebaseStorage storage = FirebaseStorage.getInstance();
     StorageReference storageReference = storage.getReferenceFromUrl("gs://test-b9492.appspot.com/");
+    ArrayList<String> tokens = new ArrayList<>();
 
 
     @Override
@@ -188,6 +207,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
             PostRef.child(department).child(item).child(sec).child(url_key).child("text").setValue(text);
             PostRef.child(department).child(item).child(sec).child(url_key).child("type").setValue(type);
         }
+        sendNotification();
         Toast.makeText(Choose_students.this, "UPLOAD SUCCESSFUL", Toast.LENGTH_SHORT).show();
         editText.setText("");
         progressDialog.dismiss();
@@ -259,8 +279,132 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
 
+                    sendNotification();
+
                     // Log.d(TAG, "onSuccess: " + url_key);
                 }
+
+            }
+        });
+    }
+
+    private void sendNotification() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference students = database.getReference("Students");
+        students.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                Log.d(TAG, "onDataChange: " + dataSnapshot.getValue());
+
+                Map<String, Object> hm = (Map<String, Object>) dataSnapshot.getValue();
+
+                Set<String> set = hm.keySet();
+
+                for (String key : set) {
+                    Map<String, String> m = (Map<String, String>) hm.get(key);
+                    String section = m.get("Section");
+                    String dept = m.get("Dept");
+                    String semester = m.get("Semester");
+                    String tokenID = m.get("Token");
+//                    Log.d(TAG, "onDataChange: "+section + " "+semester+" "+tokenID);
+                    if (dept.equals(department) && semester.equals(item)) {
+                        for (int i = 0; i < seletedItems.size(); i++) {
+                            if (section.equals(seletedItems.get(i)))
+                                tokens.add(tokenID);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < tokens.size(); i++) {
+                    final int finalI = i;
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            BufferedReader mBufferedInputStream;
+                            String Response = "";
+
+                            try {
+
+                                //google cloud api url
+                                URL url = new URL("https://fcm.googleapis.com/fcm/send");
+                                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+                                httpURLConnection.setConnectTimeout(15000);
+                                httpURLConnection.setReadTimeout(10000);
+                                httpURLConnection.setDoInput(true);
+                                httpURLConnection.setDoOutput(true);
+
+                                //set the headers
+                                httpURLConnection.setRequestProperty("Authorization", "key=AIzaSyCTz8gCofq2DNKkV5YaGs3YpQnGhW48s4A");
+                                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                                httpURLConnection.setRequestMethod("POST");
+
+                                // write all the parameters into JSON
+                                JSONObject data = new JSONObject();
+
+                                JSONObject main = new JSONObject();
+
+                                // if the task is called for sending message purpose
+                                try {
+                                    data.put("title", "DSCE Notify");
+                                    data.put("text", "You have new notification from DSCE Notify");
+
+                                    main.put("to", tokens.get(finalI));
+                                    main.put("notification", data);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                //convert the JSON object to string and write it to the output stream
+                                String query = main.toString();
+
+                                Log.d(TAG, "doInBackground: " + query);
+                                OutputStream os = httpURLConnection.getOutputStream();
+
+                                BufferedWriter mBufferedWriter = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                                mBufferedWriter.write(query);
+                                mBufferedWriter.flush();
+                                mBufferedWriter.close();
+                                os.close();
+
+                                httpURLConnection.connect();
+
+                                Log.d("GCM SENT RESPONSE", "response code " + httpURLConnection.getResponseCode());
+
+                                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+
+                                    mBufferedInputStream = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                                    String inline;
+                                    while ((inline = mBufferedInputStream.readLine()) != null) {
+                                        Response += inline;
+                                    }
+                                    mBufferedInputStream.close();
+
+                                    Log.d("GCM SENT RESPONSE", Response);
+
+
+                                } else {
+                                    Log.d("GCM SENT RESPONSE", "something wrong");
+
+                                }
+
+                            } catch (MalformedURLException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+
+                            return null;
+                        }
+                    }.execute();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
             }
         });
