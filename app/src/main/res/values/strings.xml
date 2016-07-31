@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Post_data</string>
+    <string name="app_name">DSCE Notify</string>
     <string-array name="semester">
         <item>1</item>
         <item>2</item>

@@ -167,12 +167,12 @@ public class Login_activity extends AppCompatActivity implements GoogleApiClient
                             intent.putExtra("uid",Uid);
                             String Response="true";
                             progressDialog.dismiss();
-                            startActivity(intent);
                             SharedPreferences.Editor editor = getSharedPreferences("login", Context.MODE_PRIVATE).edit();
                             editor.putString("uid",Uid);
                             editor.putString("name",name);
                             editor.putString("login",Response);
                             editor.apply();
+                            startActivity(intent);
                             finish();
 
 
