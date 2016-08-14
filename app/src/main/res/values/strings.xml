@@ -10,12 +10,29 @@
         <item>7</item>
         <item>8</item>
     </string-array>
+
+    <string-array name="semester1">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
     <string-array name="department">
-        <item>CSE</item>
-        <item>ISE</item>
-        <item>EC</item>
-        <item>EEE</item>
-        <item>MECHANICAL</item>
+        <item>FIRST YEAR</item>
+        <item>Aeronautical Engineering</item>
+        <item>Automobile Engineering</item>
+        <item>Bachelor of Architecture</item>
+        <item>Biotechnology</item>
+        <item>Chemical Engineering</item>
+        <item>Civil Engineering</item>
+        <item>Computer Science Engineering</item>
+        <item>Construction Technology and Management</item>
+        <item>Electrical and Electronics Engineering</item>
+        <item>Electronics and Communication Engineering</item>
+        <item>Industrial Engineering and Management</item>
+        <item>Information Science and Engineering</item>
+        <item>Electronics and Instrumentation Engineering</item>
+        <item>Mechanical Engineering</item>
+        <item>Medical-Electronics Engineering</item>
+        <item>Telecommunication Engineering</item>
     </string-array>
 
 

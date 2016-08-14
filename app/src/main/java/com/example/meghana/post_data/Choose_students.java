@@ -63,7 +63,9 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
     private ProgressDialog progressDialog;
     private static final String TAG = "testing";
     final CharSequence[] items = {"A", "B", "C", "D"};
+    final CharSequence[] cycle = {"PHYSICS", "CHEMISTRY"};
     final ArrayList seletedItems = new ArrayList();
+
     private long backPressedTime = 0;
     private static int RESULT_LOAD_IMG = 1;
     String item, uid, department, selectedfilepath, username;
@@ -120,12 +122,12 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
             }
         });
 
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+      /*  ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.semester, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
-
+*/
         ArrayAdapter<CharSequence> adapter1 = ArrayAdapter.createFromResource(this,
                 R.array.department, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -136,43 +138,85 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
 
     private void select_sections() {
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Select The Sections")
-                .setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
-                        if (isChecked) {
+        if (department.equals("FIRST YEAR")) {
 
-                            // If the user checked the item, add it to the selected items
-                            seletedItems.add(items[indexSelected]);
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("Select Stream")
+                    .setMultiChoiceItems(cycle, null, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
+                            if (isChecked) {
 
-                        } else if (seletedItems.contains(items[indexSelected])) {
-                            // Else, if the item is already in the array, remove it
-                            seletedItems.remove(items[indexSelected]);
+                                // If the user checked the item, add it to the selected items
+                                seletedItems.add(cycle[indexSelected]);
+
+                            } else if (seletedItems.contains(cycle[indexSelected])) {
+                                // Else, if the item is already in the array, remove it
+                                seletedItems.remove(cycle[indexSelected]);
+                            }
+
+
                         }
+                    }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            progressDialog = new ProgressDialog(Choose_students.this);
+                            progressDialog.setMessage("Uploading ");
+                            progressDialog.setIndeterminate(true);
+                            progressDialog.setCanceledOnTouchOutside(false);
+                            progressDialog.show();
+                            update();
+                        }
+                    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            // clear();
 
 
-                    }
-                }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        progressDialog = new ProgressDialog(Choose_students.this);
-                        progressDialog.setMessage("Uploading ");
-                        progressDialog.setIndeterminate(true);
-                        progressDialog.setCanceledOnTouchOutside(false);
-                        progressDialog.show();
-                        update();
-                    }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        // clear();
+                            //  Your code when user clicked on Cancel
+                        }
+                    }).create();
+            dialog.show();
+
+        } else {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("Select The Sections")
+                    .setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked) {
+                            if (isChecked) {
+
+                                // If the user checked the item, add it to the selected items
+                                seletedItems.add(items[indexSelected]);
+
+                            } else if (seletedItems.contains(items[indexSelected])) {
+                                // Else, if the item is already in the array, remove it
+                                seletedItems.remove(items[indexSelected]);
+                            }
 
 
-                        //  Your code when user clicked on Cancel
-                    }
-                }).create();
-        dialog.show();
+                        }
+                    }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            progressDialog = new ProgressDialog(Choose_students.this);
+                            progressDialog.setMessage("Uploading ");
+                            progressDialog.setIndeterminate(true);
+                            progressDialog.setCanceledOnTouchOutside(false);
+                            progressDialog.show();
+                            update();
+                        }
+                    }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            // clear();
+
+
+                            //  Your code when user clicked on Cancel
+                        }
+                    }).create();
+            dialog.show();
+        }
     }
 
     private void update() {
@@ -183,6 +227,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
 
         myRef.child(uid).child("Department").setValue(department);
         myRef.child(uid).child("Semester").setValue(item);
+
         if (type.equals("file") || type.equals("image")) {
             Log.d(TAG, "update: " + type + selectedfilepath);
             upload_to_database(selectedfilepath);
@@ -276,7 +321,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                                     // continue with delete
                                 }
                             })
-                            .setIcon(android.R.drawable.ic_dialog_alert)
+//                            .setIcon(android.R.drawable.ic_dialog_alert)
                             .show();
 
                     sendNotification();
@@ -410,14 +455,47 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         });
     }
 
+    AdapterView.OnItemSelectedListener onItemSelectedListener1 =
+            new AdapterView.OnItemSelectedListener() {
+
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view,
+                                           int position, long id) {
+
+                    Spinner spinner1 = (Spinner) parent;
+                    if (spinner1.getId() == R.id.semester)
+                        item = parent.getItemAtPosition(position).toString();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            };
+
+
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-        Spinner spinner1 = (Spinner) parent;
-        Spinner spinner2 = (Spinner) parent;
-        if (spinner1.getId() == R.id.semester)
-            item = parent.getItemAtPosition(position).toString();
+        String sp1 = String.valueOf(dept.getSelectedItem());
+        if (sp1.contentEquals("FIRST YEAR")) {
 
+            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                    R.array.semester1, android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
+            spinner.setOnItemSelectedListener(onItemSelectedListener1);
+
+        } else {
+            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                    R.array.semester, android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
+            spinner.setOnItemSelectedListener(onItemSelectedListener1);
+
+        }
+
+        Spinner spinner2 = (Spinner) parent;
         if (spinner2.getId() == R.id.department)
             department = parent.getItemAtPosition(position).toString();
 
