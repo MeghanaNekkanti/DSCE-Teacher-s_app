@@ -35,7 +35,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_gravity="bottom|end"
-        android:src="@android:drawable/ic_menu_upload" />
+        android:src="@drawable/upload_icon" />
 
     <TextView
         android:id="@+id/sem"
@@ -53,22 +53,11 @@
         android:layout_below="@+id/sem"
         android:layout_marginTop="5dp" />
 
-
-    <ImageView
-        android:id="@+id/attachfile"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/ic_pdf_box"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/semester"
-        android:onClick="attachFile" />
-
     <ImageView
         android:id="@+id/attachimg"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/ic_image_box"
+        android:src="@drawable/attach_icon"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/semester"
@@ -96,7 +85,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/attachfile" />
+        android:layout_below="@+id/attachimg" />
 
     <TextView
         android:id="@+id/file_name"

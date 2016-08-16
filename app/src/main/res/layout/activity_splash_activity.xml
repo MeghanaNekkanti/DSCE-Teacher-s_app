@@ -4,13 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.meghana.post_data.Splash_activity">
-
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/imageView3"
+        android:id="@+id/splash"
         android:src="@drawable/dsce"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_margin="40dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="DSCE Notify"
+        android:id="@+id/textView"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        android:textColor="@color/primary" />
 </RelativeLayout>

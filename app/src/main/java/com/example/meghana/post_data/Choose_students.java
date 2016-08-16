@@ -15,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -67,12 +68,12 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
     final ArrayList seletedItems = new ArrayList();
 
     private long backPressedTime = 0;
-    private static int RESULT_LOAD_IMG = 1;
+    private static int RESULT_LOAD_IMG = 1, TAKE_PICTURE = 3;
     String item, uid, department, selectedfilepath, username;
     String type = "text";
     ImageView imageView;
     Spinner spinner, dept;
-    Uri selectedfile, downloadUrl;
+    Uri selectedfile, downloadUrl, imageUri;
     EditText editText;
     TextView textView;
     FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -122,12 +123,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
             }
         });
 
-      /*  ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.semester, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
-*/
         ArrayAdapter<CharSequence> adapter1 = ArrayAdapter.createFromResource(this,
                 R.array.department, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -370,7 +365,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                             String Response = "";
 
                             try {
-
                                 //google cloud api url
                                 URL url = new URL("https://fcm.googleapis.com/fcm/send");
                                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -499,7 +493,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         if (spinner2.getId() == R.id.department)
             department = parent.getItemAtPosition(position).toString();
 
-
     }
 
     @Override
@@ -507,17 +500,50 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
 
     }
 
-    public void attachFile(View view) {
-
-        Intent intent = new Intent(this, FilePickerActivity.class);
-        startActivityForResult(intent, 2);
-    }
-
     public void attachImage(View view) {
 
-        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(Choose_students.this);
+        builderSingle.setTitle("Choose an action");
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                cw,
+                android.R.layout.select_dialog_item);
+        arrayAdapter.add("CAMERA");
+        arrayAdapter.add("GALLERY");
+        arrayAdapter.add("FILE EXPLORER");
+
+        builderSingle.setNegativeButton(
+                "cancel",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builderSingle.setAdapter(
+                arrayAdapter,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String strName = arrayAdapter.getItem(which);
+                        if (strName == "GALLERY") {
+                            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+                        } else if (strName == "FILE EXPLORER") {
+                            Intent intent = new Intent(Choose_students.this, FilePickerActivity.class);
+                            startActivityForResult(intent, 2);
+                        } else {
+                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            startActivityForResult(intent, TAKE_PICTURE);
+                        }
+
+                    }
+                });
+        builderSingle.show();
     }
 
     @Override
@@ -527,7 +553,6 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
             if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                     && null != data) {
                 selectedfile = data.getData();
-
 //                Log.d(TAG, "onActivityResult: " + selectedfile.toString());
                 selectedfilepath = null;
                 try {
@@ -539,23 +564,37 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
-                Log.d(TAG, "onActivityResult: " + selectedfilepath);
             } else if (requestCode == 2 && resultCode == RESULT_OK) {
-                imageView.setImageResource(R.drawable.ic_pdf_box);
-                selectedfilepath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
-                textView.setText(selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
-                Log.d(TAG, "onActivityResult: " + "file" + selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
-                type = "file";
 
+                selectedfilepath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+                if (selectedfilepath.contains("png") || selectedfilepath.contains("jpg") || selectedfilepath.contains("jpeg")) {
+                    display(selectedfilepath);
+                    textView.setText(selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
+                    type = "image";
+                } else {
+                    imageView.setImageResource(R.drawable.ic_pdf_box);
+                    textView.setText(selectedfilepath.substring(selectedfilepath.lastIndexOf("/") + 1));
+                    type = "file";
+                }
+
+            } else if ((requestCode == TAKE_PICTURE && resultCode == RESULT_OK
+                    && null != data)) {
+                selectedfile = data.getData();
+                selectedfilepath = null;
+                try {
+                    selectedfilepath = getPath(this, selectedfile);
+                    display(selectedfilepath);
+                    type = "image";
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
             }
             super.onActivityResult(requestCode, resultCode, data);
-
 
         } catch (Exception e) {
             Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
                     .show();
         }
-
     }
 
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
