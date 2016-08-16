@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="library-1.09">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.nbsp/library/1.09/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.nbsp/library/1.09/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.nbsp/library/1.09/905339864262e073a1204e12e4592979c2f4cf14/library-1.09-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

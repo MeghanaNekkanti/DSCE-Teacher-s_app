@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -223,13 +225,20 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         myRef.child(uid).child("Department").setValue(department);
         myRef.child(uid).child("Semester").setValue(item);
 
-        if (type.equals("file") || type.equals("image")) {
-            Log.d(TAG, "update: " + type + selectedfilepath);
-            upload_to_database(selectedfilepath);
+        if (hasConnection(getApplicationContext())) {
 
-        } else
-            upload_text();
+            if (type.equals("file") || type.equals("image")) {
+                Log.d(TAG, "update: " + type + selectedfilepath);
+                upload_to_database(selectedfilepath);
 
+            } else
+
+                upload_text();
+
+        } else {
+            Toast.makeText(Choose_students.this, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            progressDialog.dismiss();
+        }
 
     }
 
@@ -239,18 +248,25 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         final DatabaseReference PostRef = database.getReference("Post");
         String text = editText.getText().toString();
         String url_key = PostRef.push().getKey();
-        for (int i = 0; i < seletedItems.size(); i++) {
+        if (text.isEmpty()) {
+            Toast.makeText(Choose_students.this, " No file or note found ", Toast.LENGTH_SHORT).show();
+            progressDialog.dismiss();
 
-            String sec = seletedItems.get(i).toString();
-            Log.d(TAG, "onSuccess: " + sec);
-            PostRef.child(department).child(item).child(sec).child(url_key).child("name").setValue(username);
-            PostRef.child(department).child(item).child(sec).child(url_key).child("text").setValue(text);
-            PostRef.child(department).child(item).child(sec).child(url_key).child("type").setValue(type);
+
+        } else {
+            for (int i = 0; i < seletedItems.size(); i++) {
+
+                String sec = seletedItems.get(i).toString();
+                Log.d(TAG, "onSuccess: " + sec);
+                PostRef.child(department).child(item).child(sec).child(url_key).child("name").setValue(username);
+                PostRef.child(department).child(item).child(sec).child(url_key).child("text").setValue(text);
+                PostRef.child(department).child(item).child(sec).child(url_key).child("type").setValue(type);
+            }
+            sendNotification();
+            Toast.makeText(Choose_students.this, "UPLOAD SUCCESSFUL", Toast.LENGTH_SHORT).show();
+            editText.setText("");
+            progressDialog.dismiss();
         }
-        sendNotification();
-        Toast.makeText(Choose_students.this, "UPLOAD SUCCESSFUL", Toast.LENGTH_SHORT).show();
-        editText.setText("");
-        progressDialog.dismiss();
 
     }
 
@@ -328,6 +344,30 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
         });
     }
 
+    public static boolean hasConnection(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo wifiNetwork = cm
+                .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if (wifiNetwork != null && wifiNetwork.isConnected()) {
+            return true;
+        }
+
+        NetworkInfo mobileNetwork = cm
+                .getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        if (mobileNetwork != null && mobileNetwork.isConnected()) {
+            return true;
+        }
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            return true;
+        }
+
+        return false;
+    }
+
     private void sendNotification() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference students = database.getReference("Students");
@@ -359,6 +399,13 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
                 for (int i = 0; i < tokens.size(); i++) {
                     final int finalI = i;
                     new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            super.onPostExecute(aVoid);
+                            if (finalI == (tokens.size() - 1))
+                                tokens = new ArrayList<String>();
+                        }
+
                         @Override
                         protected Void doInBackground(Void... params) {
                             BufferedReader mBufferedInputStream;
@@ -502,7 +549,7 @@ public class Choose_students extends AppCompatActivity implements AdapterView.On
 
     public void attachImage(View view) {
 
-        ContextThemeWrapper cw = new ContextThemeWrapper( this, R.style.AlertDialogTheme );
+        ContextThemeWrapper cw = new ContextThemeWrapper(this, R.style.AlertDialogTheme);
 
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(Choose_students.this);
         builderSingle.setTitle("Choose an action");
